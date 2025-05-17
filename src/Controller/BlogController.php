@@ -98,52 +98,6 @@ final class BlogController extends AbstractController
     }
 
     /**
-     * NOTE: The #[MapEntity] mapping is required because the route parameter
-     * (postSlug) doesn't match any of the Doctrine entity properties (slug).
-     *
-     * See https://symfony.com/doc/current/doctrine.html#doctrine-entity-value-resolver
-     */
-    #[Route('/comment/{postSlug}/new', name: 'comment_new', requirements: ['postSlug' => Requirement::ASCII_SLUG], methods: ['POST'])]
-    #[IsGranted('IS_AUTHENTICATED')]
-    public function commentNew(
-        #[CurrentUser] User $user,
-        Request $request,
-        #[MapEntity(mapping: ['postSlug' => 'slug'])] Post $post,
-        EventDispatcherInterface $eventDispatcher,
-        EntityManagerInterface $entityManager,
-    ): Response {
-        $comment = new Comment();
-        $comment->setAuthor($user);
-        $post->addComment($comment);
-
-        $form = $this->createForm(CommentType::class, $comment);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($comment);
-            $entityManager->flush();
-
-            // When an event is dispatched, Symfony notifies it to all the listeners
-            // and subscribers registered to it. Listeners can modify the information
-            // passed in the event and they can even modify the execution flow, so
-            // there's no guarantee that the rest of this controller will be executed.
-            // See https://symfony.com/doc/current/components/event_dispatcher.html
-            //
-            // If you prefer to process comments asynchronously (e.g. to perform some
-            // heavy tasks on them) you can use the Symfony Messenger component.
-            // See https://symfony.com/doc/current/messenger.html
-            $eventDispatcher->dispatch(new CommentCreatedEvent($comment));
-
-            return $this->redirectToRoute('blog_post', ['slug' => $post->getSlug()], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('blog/comment_form_error.html.twig', [
-            'post' => $post,
-            'form' => $form,
-        ]);
-    }
-
-    /**
      * This controller is called directly via the render() function in the
      * blog/post_show.html.twig template. That's why it's not needed to define
      * a route name for it.
