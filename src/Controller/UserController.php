@@ -24,7 +24,7 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * Controller used to manage current user. The #[CurrentUser] attribute
+ * Controler used to manage curent user. The #[CurrentUser] attribute
  * tells Symfony to inject the currently logged user into the given argument.
  * It can only be used in controllers and it's an alternative to the
  * $this->getUser() method, which still works inside controllers.
